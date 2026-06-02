@@ -18,7 +18,7 @@ if (isset($_SESSION['id_utilizador'])) {
 
 // Verificar se chegaram os dados
 if (!isset($_POST['username']) || !isset($_POST['password'])) {
-    header('Location: ../index.html?erro=dados_invalidos');
+    header('Location: ../index.php?erro=dados_invalidos');
     exit();
 }
 
@@ -27,7 +27,7 @@ $username = trim(htmlspecialchars($_POST['username']));
 $password = trim($_POST['password']);
 
 if (empty($username) || empty($password)) {
-    header('Location: ../index.html?erro=campos_vazios');
+    header('Location: ../index.php?erro=campos_vazios');
     exit();
 }
 
@@ -46,7 +46,7 @@ $utilizador   = $resultado->fetchArray(SQLITE3_ASSOC);
 
 // Verificar se existe e se a password está correta
 if (!$utilizador || !password_verify($password, $utilizador['password'])) {
-    header('Location: ../index.html?erro=credenciais_invalidas');
+    header('Location: ../index.php?erro=credenciais_invalidas');
     exit();
 }
 
