@@ -1,0 +1,83 @@
+commit 9fbcb62e741cc421b92b08aa8cab9615e91f1c74
+Author: diogo <1231516@isep.ipp.pt>
+Date:   Tue Jun 16 16:14:34 2026 +0100
+
+    Guião 3: ultimos submit
+
+commit 6833e7fe55e23fa5866cb44d61ba881b8a59828a
+Author: Diogo-Braga7 <diogogsabraga@gmail.com>
+Date:   Tue Jun 2 21:52:16 2026 +0100
+
+    Add files via upload
+
+commit b74cb8d22b3e30bcda3d193a833a265755c1adf2
+Author: Carolina Rullo <carol.rullo8@gmail.com>
+Date:   Tue Jun 2 16:17:47 2026 +0100
+
+    Log atualizado W2
+
+commit d019519dd75a99d43285426e8f8c49ac92d1ddbe
+Author: Carolina Rullo <carol.rullo8@gmail.com>
+Date:   Tue Jun 2 14:32:22 2026 +0100
+
+    W2: ficheiros finais para entrega
+
+commit 11bb40f6fc51a16d826f4b52d99f251f2691bbbd
+Author: Carolina Rullo <carol.rullo8@gmail.com>
+Date:   Wed May 27 16:58:45 2026 +0100
+
+    Log do guiao W2
+
+commit df48266c525ea04ca4eeaca56a8b816651fa97d6
+Author: Carolina Rullo <carol.rullo8@gmail.com>
+Date:   Wed May 27 16:58:05 2026 +0100
+
+    W2: PHP e SQLite3 completos - login, campanhas, leads, relatorios, admin
+
+commit 294ed277c3b6e8e304a7b38a7141b682020deb4f
+Author: Carolina Rullo <carol.rullo8@gmail.com>
+Date:   Wed May 27 16:09:47 2026 +0100
+
+    W1 completo - HTML e CSS de todas as paginas do MarketingAuto
+
+commit 7af859d16f898ce87cd585b69d2b3d038a09cf51
+Author: Carolina Rullo <carol.rullo8@gmail.com>
+Date:   Mon May 25 20:07:32 2026 +0100
+
+    Adicionar ficheiro de log do git
+
+commit 0b5a21b4c846ac8f01e4f819f20ad77f9ad7e5a1
+Author: Carolina Rullo <carol.rullo8@gmail.com>
+Date:   Mon May 25 20:05:37 2026 +0100
+
+    Responsividade testada e corrigida - media queries para mobile e tablet
+
+commit 8d97997aa7ef6e7df7a20eab4cbda7c67d0f9bbc
+Author: Carolina Rullo <carol.rullo8@gmail.com>
+Date:   Mon May 25 20:01:33 2026 +0100
+
+    Paginas HTML completas com CSS integrado
+
+commit 2dd5f5fba991f6ce1257879db71a8dc2bd3f95a2
+Author: Carolina Rullo <carol.rullo8@gmail.com>
+Date:   Mon May 25 19:57:46 2026 +0100
+
+    CSS completo - seletores individuais, combinados, pseudo-classes e pseudo-elementos
+
+commit 54e0f145859dc80d218df40a4ff4ee9eddd07d84
+Author: Carolina Rullo <carol.rullo8@gmail.com>
+Date:   Mon May 25 17:04:41 2026 +0100
+
+    Estrutura de diretorios criada: images, scripts, styles
+
+commit 8b2db640fa993ea68a0dbc958bbf04118592299d
+Author: Carolina Rullo <carol.rullo8@gmail.com>
+Date:   Mon May 25 15:46:58 2026 +0100
+
+    Primeiro commit - descrição inicial do projeto no README
+
+commit 69d4305a53ea12d434ab4ae13bdd9aadbacb3698
+Author: carolrullo8-ui <carol.rullo8@gmail.com>
+Date:   Mon May 25 11:00:23 2026 +0100
+
+    Initial commit
