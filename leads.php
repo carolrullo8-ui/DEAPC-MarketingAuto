@@ -5,7 +5,7 @@
 */
 session_start();
 
-if (!isset($_SESSION['id_utilizador'])) {
+if (!isset($_SESSION['id_utilizador']) && !isset($_SESSION['utilizador'])) {
     header('Location: index.php?erro=sessao_expirada');
     exit();
 }
@@ -20,13 +20,13 @@ $mensagemErro = "";
 // BARREIRA DE SEGURANÇA: REMOÇÃO DE LEAD
 // ==========================================
 if (isset($_GET['remover'])) {
-    if ($_SESSION['tipo'] !== 'admin') {
+    if ($_SESSION['tipo'] !== 'ADMIN') {
         $mensagemErro = "Acesso negado: O seu perfil não permite eliminar registos.";
     } else {
         $id_remover = intval($_GET['remover']);
         try {
             $stmt = $db->prepare("DELETE FROM leads WHERE id = :id");
-            $stmt->bindValue(':id', $id_remover, SQLITE3_INTEGER);
+            $stmt->bindValue(':id', $id_remover, PDO::PARAM_INT);
             
             if ($stmt->execute()) {
                 $mensagemSucesso = "Lead eliminada com sucesso!";
@@ -52,14 +52,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nome'], $_POST['email
         try {
             if ($id_lead > 0) {
                 // Segurança extra para alteração
-                if ($_SESSION['tipo'] !== 'admin') {
+                if ($_SESSION['tipo'] !== 'ADMIN') {
                     $mensagemErro = "Erro: Sem permissão para corrigir dados.";
                 } else {
                     $stmt = $db->prepare("UPDATE leads SET nome = :nome, email = :email, empresa = :empresa WHERE id = :id");
-                    $stmt->bindValue(':nome', $nome, SQLITE3_TEXT);
-                    $stmt->bindValue(':email', $email, SQLITE3_TEXT);
-                    $stmt->bindValue(':empresa', $empresa, SQLITE3_TEXT);
-                    $stmt->bindValue(':id', $id_lead, SQLITE3_INTEGER);
+                    $stmt->bindValue(':nome', $nome, PDO::PARAM_STR);
+                    $stmt->bindValue(':email', $email, PDO::PARAM_STR);
+                    $stmt->bindValue(':empresa', $empresa, PDO::PARAM_STR);
+                    $stmt->bindValue(':id', $id_lead, PDO::PARAM_INT);
                     
                     if ($stmt->execute()) {
                         $mensagemSucesso = "Lead corrigida com sucesso pelo Administrador!";
@@ -67,10 +67,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nome'], $_POST['email
                 }
             } else {
                 // Inserção livre para utilizadores autenticados
-                $stmt = $db->prepare("INSERT INTO leads (nome, email, estado, segmento, empresa) VALUES (:nome, :email, 'novo', 'Geral', :empresa)");
-                $stmt->bindValue(':nome', $nome, SQLITE3_TEXT);
-                $stmt->bindValue(':email', $email, SQLITE3_TEXT);
-                $stmt->bindValue(':empresa', $empresa, SQLITE3_TEXT);
+                $stmt = $db->prepare("INSERT INTO leads (nome, email, status, segmento, empresa) VALUES (:nome, :email, 'Novo', 'Geral', :empresa)");
+                $stmt->bindValue(':nome', $nome, PDO::PARAM_STR);
+                $stmt->bindValue(':email', $email, PDO::PARAM_STR);
+                $stmt->bindValue(':empresa', $empresa, PDO::PARAM_STR);
                 
                 if ($stmt->execute()) {
                     $mensagemSucesso = "Lead guardada com sucesso!";
@@ -89,20 +89,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nome'], $_POST['email
 // ==========================================
 $leadParaEditar = null;
 if (isset($_GET['editar'])) {
-    if ($_SESSION['tipo'] !== 'admin') {
+    if ($_SESSION['tipo'] !== 'ADMIN') {
         $mensagemErro = "Acesso negado: O seu perfil não permite editar registos.";
     } else {
         $id_editar = intval($_GET['editar']);
         $stmt = $db->prepare("SELECT id, nome, email, empresa FROM leads WHERE id = :id");
-        $stmt->bindValue(':id', $id_editar, SQLITE3_INTEGER);
-        $resultadoEdicao = $stmt->execute();
-        if ($row = $resultadoEdicao->fetchArray(SQLITE3_ASSOC)) {
+        $stmt->bindValue(':id', $id_editar, PDO::PARAM_INT);
+        $stmt->execute();
+        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $leadParaEditar = $row;
         }
     }
 }
 
-$resultadoLeads = $db->query("SELECT id, nome, email, empresa, estado FROM leads ORDER BY id DESC");
+// Nota: Usamos "status AS estado" para alinhar a coluna do MySQL com o teu HTML abaixo
+$resultadoLeads = $db->query("SELECT id, nome, email, empresa, status AS estado FROM leads ORDER BY id DESC");
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -119,7 +120,7 @@ $resultadoLeads = $db->query("SELECT id, nome, email, empresa, estado FROM leads
             <a href="campanhas.php">Campanhas</a>
             <a href="leads.php" class="active">Gestão de Leads</a>
             <a href="relatorios.php">Relatórios</a>
-            <span style="margin-left: 15px; color: #fff; opacity: 0.8; font-size: 14px;">Olá, <strong><?php echo htmlspecialchars($_SESSION['nome']); ?></strong> (<?php echo ucfirst($_SESSION['tipo']); ?>)</span>
+            <span style="margin-left: 15px; color: #fff; opacity: 0.8; font-size: 14px;">Olá, <strong><?php echo htmlspecialchars($_SESSION['utilizador'] ?? 'Utilizador'); ?></strong> (<?php echo ucfirst($_SESSION['tipo'] ?? 'Perfil'); ?>)</span>
             <a href="scripts/logout.php" style="color: #ff4d4d; margin-left: 10px; text-decoration: none; font-weight: bold;">Sair →</a>
         </nav>
     </header>
@@ -127,7 +128,7 @@ $resultadoLeads = $db->query("SELECT id, nome, email, empresa, estado FROM leads
     <main style="padding: 30px; max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
         
         <section style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); height: fit-content;">
-            <h2><?php echo $leadParaEditar ? "✏️ Corrigir Lead (Admin)" : "Adicionar Lead"; ?></h2>
+            <h2><?php echo $leadParaEditar ? "✏️ Corrigir Lead (ADMIN)" : "Adicionar Lead"; ?></h2>
             
             <?php if (!empty($mensagemSucesso)): ?>
                 <div style="background:#e2f0d9; color:#385723; padding:10px; text-align:center; margin-bottom:15px; font-weight:bold;"><?php echo $mensagemSucesso; ?></div>
@@ -178,15 +179,15 @@ $resultadoLeads = $db->query("SELECT id, nome, email, empresa, estado FROM leads
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($lead = $resultadoLeads->fetchArray(SQLITE3_ASSOC)): ?>
+                    <?php while ($lead = $resultadoLeads->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr style="border-bottom: 1px solid #eee; <?php echo ($leadParaEditar && $leadParaEditar['id'] == $lead['id']) ? 'background-color: #fff9e6;' : ''; ?>">
                             <td style="padding: 10px;"><strong><?php echo htmlspecialchars($lead['nome']); ?></strong></td>
                             <td style="padding: 10px; color:#333;"><?php echo htmlspecialchars($lead['empresa']); ?></td>
                             <td style="padding: 10px; color:#555;"><?php echo htmlspecialchars($lead['email']); ?></td>
-                            <td style="padding: 10px;"><span style="background:#e2f0d9; padding:3px 6px; border-radius:4px; font-size:11px; font-weight:bold;"><?php echo htmlspecialchars($lead['estado']); ?></span></td>
+                            <td style="padding: 10px;"><span style="background:#e2f0d9; padding:3px 6px; border-radius:4px; font-size:11px; font-weight:bold; color:#385723;"><?php echo htmlspecialchars($lead['estado']); ?></span></td>
                             
                             <td style="padding: 10px; text-align: center; white-space: nowrap;">
-                                <?php if ($_SESSION['tipo'] === 'admin'): ?>
+                                <?php if ($_SESSION['tipo'] === 'ADMIN'): ?>
                                     <a href="leads.php?editar=<?php echo $lead['id']; ?>" style="text-decoration: none; font-size: 15px; margin-right: 8px;" title="Corrigir Dados">✏️</a>
                                     <a href="leads.php?remover=<?php echo $lead['id']; ?>" 
                                        onclick="return confirm('Tem a certeza que deseja remover o contacto de <?php echo htmlspecialchars($lead['nome']); ?>?');" 

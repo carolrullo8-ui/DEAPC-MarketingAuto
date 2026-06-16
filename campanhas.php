@@ -27,7 +27,7 @@ $mensagemErro = "";
 // 1. BARREIRA DE SEGURANÇA: REMOÇÃO
 // ==========================================
 if (isset($_GET['remover'])) {
-    if ($_SESSION['tipo'] !== 'admin') {
+    if ($_SESSION['tipo'] !== 'ADMIN') {
         $mensagemErro = "Acesso negado: O seu perfil não permite eliminar campanhas.";
     } else {
         $id_remover = intval($_GET['remover']);
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nome'], $_POST['data_
         try {
             if ($id_campanha > 0) {
                 // MODO EDIÇÃO
-                if ($_SESSION['tipo'] !== 'admin') {
+                if ($_SESSION['tipo'] !== 'ADMIN') {
                     $mensagemErro = "Erro: Sem permissão para alterar dados.";
                 } else {
                     $stmt = $db->prepare("UPDATE campanhas SET nome = :nome, estado = :estado, data_inicio = :data_inicio, publico_alvo = :publico_alvo WHERE id = :id");
@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nome'], $_POST['data_
                 $stmt->bindValue(':id_criador', $id_criador, SQLITE3_INTEGER);
                 $stmt->execute();
                 
-                $id_nova_campanha = $db->lastInsertRowID();
+                $id_nova_campanha = $db->lastInsertId();
                 
                 foreach ($leads_selecionadas as $id_lead) {
                     $stmt_link = $db->prepare("INSERT INTO campanha_leads (id_campanha, id_lead) VALUES (:id_c, :id_l)");
@@ -122,19 +122,19 @@ $campanhaParaEditar = null;
 $leadsDaCampanhaEditada = [];
 
 if (isset($_GET['editar'])) {
-    if ($_SESSION['tipo'] !== 'admin') {
+    if ($_SESSION['tipo'] !== 'ADMIN') {
         $mensagemErro = "Acesso negado para alteração.";
     } else {
         $id_editar = intval($_GET['editar']);
         
         $stmt = $db->prepare("SELECT id, nome, estado, data_inicio, publico_alvo FROM campanhas WHERE id = :id");
         $stmt->bindValue(':id', $id_editar, SQLITE3_INTEGER);
-        $resultadoEdicao = $stmt->execute();
-        if ($row = $resultadoEdicao->fetchArray(SQLITE3_ASSOC)) {
+        $stmt->execute();
+        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $campanhaParaEditar = $row;
             
             $queryLeadsCampanha = $db->query("SELECT id_lead FROM campanha_leads WHERE id_campanha = $id_editar");
-            while ($l = $queryLeadsCampanha->fetchArray(SQLITE3_ASSOC)) {
+            while ($l = $queryLeadsCampanha->fetch(PDO::FETCH_ASSOC)) {
                 $leadsDaCampanhaEditada[] = $l['id_lead'];
             }
         }
@@ -221,7 +221,7 @@ $resultadoCampanhas = $db->query("
                     <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 4px; background: #fafafa;">
                         <?php 
                         $haLeads = false;
-                        while ($lead = $todasAsLeads->fetchArray(SQLITE3_ASSOC)): 
+                        while ($lead = $todasAsLeads->fetch(PDO::FETCH_ASSOC)): 
                             $haLeads = true;
                             $marcado = in_array($lead['id'], $leadsDaCampanhaEditada) ? 'checked' : '';
                         ?>
@@ -265,7 +265,7 @@ $resultadoCampanhas = $db->query("
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($campanha = $resultadoCampanhas->fetchArray(SQLITE3_ASSOC)): ?>
+                    <?php while ($campanha = $resultadoCampanhas->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr style="border-bottom: 1px solid #eee;">
                             <td style="padding: 12px; color: #666;"><?php echo $campanha['id']; ?></td>
                             <td style="padding: 12px;">
@@ -292,7 +292,7 @@ $resultadoCampanhas = $db->query("
                             </td>
                             
                             <td style="padding: 12px; text-align: center; white-space: nowrap;">
-                                <?php if ($_SESSION['tipo'] === 'admin'): ?>
+                                <?php if ($_SESSION['tipo'] === 'ADMIN'): ?>
                                     <a href="campanhas.php?editar=<?php echo $campanha['id']; ?>" style="text-decoration: none; font-size: 15px; margin-right: 10px;">✏️</a>
                                     <a href="campanhas.php?remover=<?php echo $campanha['id']; ?>" onclick="return confirm('Tem a certeza que quer eliminar a campanha?');" style="color: #ff4d4d; text-decoration: none; font-size: 15px;">❌</a>
                                 <?php else: ?>

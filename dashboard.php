@@ -13,9 +13,9 @@ if (!isset($_SESSION['id_utilizador'])) {
 require_once 'scripts/iniciarDB.php';
 $db = getDB();
 
-// 1. Contadores para os mini-painéis do topo
-$totalCampanhasAtivas = $db->querySingle("SELECT COUNT(*) FROM campanhas WHERE LOWER(trim(estado)) = 'ativa'") ?: 0;
-$totalLeads = $db->querySingle("SELECT COUNT(*) FROM leads") ?: 0;
+// 1. Contadores para os mini-painéis do topo (Adaptado para PDO MySQL)
+$totalCampanhasAtivas = $db->query("SELECT COUNT(*) FROM campanhas WHERE LOWER(TRIM(estado)) = 'ativa'")->fetchColumn() ?: 0;
+$totalLeads = $db->query("SELECT COUNT(*) FROM leads")->fetchColumn() ?: 0;
 
 // 2. QUERY ATUALIZADA: Conta as leads associadas a partir da tabela pivô 'campanha_leads'
 $resultadoCampanhas = $db->query("
@@ -28,7 +28,7 @@ $resultadoCampanhas = $db->query("
 ");
 
 // 3. Procurar as Leads Recentes para a tabela da direita
-$resultadoLeads = $db->query("SELECT nome, empresa, estado FROM leads ORDER BY id DESC LIMIT 4");
+$resultadoLeads = $db->query("SELECT nome, empresa, status FROM leads ORDER BY id DESC LIMIT 4");
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -47,6 +47,7 @@ $resultadoLeads = $db->query("SELECT nome, empresa, estado FROM leads ORDER BY i
             <a href="campanhas.php">Campanhas</a>
             <a href="leads.php">Gestão de Leads</a>
             <a href="relatorios.php">Relatórios</a>
+            <a href="admin.php" style="color: #9e8486;">Administração</a>
             <span style="margin-left: 15px; color: #fff; opacity: 0.8; font-size: 14px;">Olá, <strong><?php echo htmlspecialchars($_SESSION['nome']); ?></strong></span>
             <a href="scripts/logout.php" style="color: #ff4d4d; margin-left: 10px; text-decoration: none; font-weight: bold;">Sair →</a>
         </nav>
@@ -77,14 +78,14 @@ $resultadoLeads = $db->query("SELECT nome, empresa, estado FROM leads ORDER BY i
             <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #ffc107; display: flex; align-items: center; gap: 15px;">
                 <span style="font-size: 30px;">📩</span>
                 <div>
-                    <h3 style="margin:0; font-size: 24px; color:#333;">0%</h3>
+                    <h3 style="margin:0; font-size: 24px; color:#333;">20%</h3>
                     <p style="margin:0; font-size: 11px; color:#aaa; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Taxa de Abertura</p>
                 </div>
             </div>
             <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #17a2b8; display: flex; align-items: center; gap: 15px;">
                 <span style="font-size: 30px;">🖱️</span>
                 <div>
-                    <h3 style="margin:0; font-size: 24px; color:#333;">0%</h3>
+                    <h3 style="margin:0; font-size: 24px; color:#333;">80%</h3>
                     <p style="margin:0; font-size: 11px; color:#aaa; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Taxa de Cliques</p>
                 </div>
             </div>
@@ -106,7 +107,7 @@ $resultadoLeads = $db->query("SELECT nome, empresa, estado FROM leads ORDER BY i
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while ($campanha = $resultadoCampanhas->fetchArray(SQLITE3_ASSOC)): ?>
+                        <?php while ($campanha = $resultadoCampanhas->fetch(PDO::FETCH_ASSOC)): ?>
                             <tr style="border-bottom: 1px solid #f7fafc; font-size: 14px;">
                                 <td style="padding: 14px 8px; color: #2d3748;"><?php echo htmlspecialchars($campanha['nome']); ?></td>
                                 <td style="padding: 14px 8px;">
@@ -143,19 +144,19 @@ $resultadoLeads = $db->query("SELECT nome, empresa, estado FROM leads ORDER BY i
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while ($lead = $resultadoLeads->fetchArray(SQLITE3_ASSOC)): ?>
+                        <?php while ($lead = $resultadoLeads->fetch(PDO::FETCH_ASSOC)): ?>
                             <tr style="border-bottom: 1px solid #f7fafc; font-size: 14px;">
                                 <td style="padding: 14px 8px; font-weight: 500; color: #2d3748;"><?php echo htmlspecialchars($lead['nome']); ?></td>
                                 <td style="padding: 14px 8px; color: #718096;"><?php echo htmlspecialchars($lead['empresa']); ?></td>
                                 <td style="padding: 14px 8px; text-align: center;">
                                     <?php
-                                    $statusle = strtolower(trim($lead['estado']));
+                                    $statusle = strtolower(trim($lead['status']));
                                     if ($statusle === 'novo') { $bgL = '#e8f0fe'; $textL = '#1a73e8'; }
                                     elseif ($statusle === 'contactado') { $bgL = '#fef3c7'; $textL = '#b45309'; }
                                     else { $bgL = '#d1fae5'; $textL = '#065f46'; } // Convertido
                                     ?>
                                     <span style="background: <?php echo $bgL; ?>; color: <?php echo $textL; ?>; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; text-transform: uppercase;">
-                                        <?php echo htmlspecialchars($lead['estado']); ?>
+                                        <?php echo htmlspecialchars($lead['status']); ?>
                                     </span>
                                 </td>
                             </tr>

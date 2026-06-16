@@ -18,22 +18,22 @@ $db = getDB();
 // ==========================================
 
 // Total de Leads
-$totalLeads = $db->querySingle("SELECT COUNT(*) FROM leads") ?: 0;
+$totalLeads = $db->query("SELECT COUNT(*) FROM leads")->fetchColumn() ?: 0;
 
 // Total de Campanhas
-$totalCampanhas = $db->querySingle("SELECT COUNT(*) FROM campanhas") ?: 0;
+$totalCampanhas = $db->query("SELECT COUNT(*) FROM campanhas")->fetchColumn() ?: 0;
 
 // Campanhas Ativas vs Pausadas (Protegido contra maiúsculas/espaços)
-$campanhasAtivas = $db->querySingle("SELECT COUNT(*) FROM campanhas WHERE LOWER(trim(estado)) = 'ativa'") ?: 0;
-$campanhasPausadas = $db->querySingle("SELECT COUNT(*) FROM campanhas WHERE LOWER(trim(estado)) = 'pausada'") ?: 0;
+$campanhasAtivas = $db->query("SELECT COUNT(*) FROM campanhas WHERE LOWER(TRIM(estado)) = 'ativa'")->fetchColumn() ?: 0;
+$campanhasPausadas = $db->query("SELECT COUNT(*) FROM campanhas WHERE LOWER(TRIM(estado)) = 'pausada'")->fetchColumn() ?: 0;
 
 
 // ==========================================
 // 2. RECOLHA DE DISTRIBUIÇÕES (DADOS DETALHADOS)
 // ==========================================
 
-// Distribuição de Leads por Estado
-$listaEstadosLeads = $db->query("SELECT estado, COUNT(*) as total FROM leads GROUP BY estado ORDER BY total DESC");
+// Distribuição de Leads por Estado (Ajustado para usar a coluna 'status' do MySQL)
+$listaEstadosLeads = $db->query("SELECT status AS estado, COUNT(*) as total FROM leads GROUP BY status ORDER BY total DESC");
 
 // Top Empresas com mais Leads
 $listaEmpresasLeads = $db->query("SELECT empresa, COUNT(*) as total FROM leads GROUP BY empresa ORDER BY total DESC LIMIT 5");
@@ -58,7 +58,7 @@ $listaSegmentosLeads = $db->query("SELECT segmento, COUNT(*) as total FROM leads
             <a href="campanhas.php">Campanhas</a>
             <a href="leads.php">Gestão de Leads</a>
             <a href="relatorios.php" class="active">Relatórios</a>
-            <span style="margin-left: 15px; color: #fff; opacity: 0.8; font-size: 14px;">Olá, <strong><?php echo htmlspecialchars($_SESSION['nome']); ?></strong> (<?php echo ucfirst($_SESSION['tipo']); ?>)</span>
+            <span style="margin-left: 15px; color: #fff; opacity: 0.8; font-size: 14px;">Olá, <strong><?php echo htmlspecialchars($_SESSION['nome'] ?? $_SESSION['utilizador'] ?? 'Utilizador'); ?></strong> (<?php echo ucfirst($_SESSION['tipo'] ?? 'Perfil'); ?>)</span>
             <a href="scripts/logout.php" style="color: #ff4d4d; margin-left: 10px; text-decoration: none; font-weight: bold;">Sair →</a>
         </nav>
     </header>
@@ -114,11 +114,12 @@ $listaSegmentosLeads = $db->query("SELECT segmento, COUNT(*) as total FROM leads
                         <tbody>
                             <?php 
                             $temEstados = false;
-                            while ($estado = $listaEstadosLeads->fetchArray(SQLITE3_ASSOC)): 
+                            // Alterado fetchArray() para fetch(PDO::FETCH_ASSOC)
+                            while ($estado = $listaEstadosLeads->fetch(PDO::FETCH_ASSOC)): 
                                 $temEstados = true;
                             ?>
                                 <tr style="border-bottom: 1px solid #eee;">
-                                    <td style="padding: 10px; font-weight: bold; text-transform: capitalize; color: #4e5d6c;"><?php echo htmlspecialchars($estado['estado']); ?></td>
+                                    <td style="padding: 10px; font-weight: bold; text-transform: capitalize; color: #4e5d6c;"><?php echo htmlspecialchars($estado['estado'] ?? 'Novo'); ?></td>
                                     <td style="padding: 10px; text-align: right; font-weight: bold; color: #007bff;"><?php echo $estado['total']; ?></td>
                                 </tr>
                             <?php 
@@ -136,13 +137,14 @@ $listaSegmentosLeads = $db->query("SELECT segmento, COUNT(*) as total FROM leads
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <?php 
                         $temSegmentos = false;
-                        while ($seg = $listaSegmentosLeads->fetchArray(SQLITE3_ASSOC)): 
+                        // Alterado fetchArray() para fetch(PDO::FETCH_ASSOC)
+                        while ($seg = $listaSegmentosLeads->fetch(PDO::FETCH_ASSOC)): 
                             $temSegmentos = true;
                             $percentagem = $totalLeads > 0 ? round(($seg['total'] / $totalLeads) * 100) : 0;
                         ?>
                             <div>
                                 <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px;">
-                                    <strong><?php echo htmlspecialchars($seg['segmento']); ?></strong>
+                                    <strong><?php echo htmlspecialchars($seg['segmento'] ?? 'Geral'); ?></strong>
                                     <span style="color:#666;"><?php echo $seg['total']; ?> leads (<?php echo $percentagem; ?>%)</span>
                                 </div>
                                 <div style="width: 100%; background: #eee; height: 8px; border-radius: 4px; overflow: hidden;">
@@ -175,7 +177,8 @@ $listaSegmentosLeads = $db->query("SELECT segmento, COUNT(*) as total FROM leads
                         <?php 
                         $temEmpresas = false;
                         $rank = 1;
-                        while ($emp = $listaEmpresasLeads->fetchArray(SQLITE3_ASSOC)): 
+                        // Alterado fetchArray() para fetch(PDO::FETCH_ASSOC)
+                        while ($emp = $listaEmpresasLeads->fetch(PDO::FETCH_ASSOC)): 
                             if (empty($emp['empresa'])) continue;
                             $temEmpresas = true;
                         ?>
